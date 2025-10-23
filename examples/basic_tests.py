@@ -1,4 +1,3 @@
-import cv2
 import pyhbst
 
 desc_size = 256
@@ -16,26 +15,27 @@ for i in range(5):
     desc2[i] = False
 kp2 = [120, 120]
 img_id += 1
-matchable2 = pyhbst.Matchable256(kp2, desc2, img_id)
-a=tree.add([matchable2], split_strat)
+#matchable2 = pyhbst.Matchable256(kp2, desc2, img_id)
+a=tree.add([kp2], [desc2], img_id, split_strat)
 
 desc3 = [True]*256
 for i in range(10):
     desc3[i] = False
 kp3 = [125, 125]
 img_id += 1
-matchable3 = pyhbst.Matchable256(kp3, desc3, img_id)
+#matchable3 = pyhbst.Matchable256(kp3, desc3, img_id)
 
 
 # just match, should return one match
-test = tree.match([matchable3], 6)
-tree.add([matchable3], split_strat)
+test = tree.match([kp3], [desc3], img_id, 6)
+tree.add([kp3], [desc3], img_id, split_strat)
 
 print(test[0].matchable_references[0].getImageIdentifier()) # should be 1
 
 print(test[0].matchable_references[0].distance(test[0].matchable_query)) # should be 1
 
 print(test[0].matchable_references[0].getDescriptor() == desc2) # should be 1
+
 print(test[0].matchable_query.getDescriptor() == desc2) # should be 1
 
 
@@ -44,9 +44,9 @@ for i in range(15):
     desc4[i] = False
 kp4 = [135, 135]
 img_id += 1
-matchable4 = pyhbst.Matchable256(kp4, desc4, img_id)
+#matchable4 = pyhbst.Matchable256(kp4, desc4, img_id)
 
-res = tree.matchAndAdd([matchable4], 16, split_strat)
+res = tree.matchAndAdd([kp4], [desc4], img_id, 16, split_strat)
 print(res)
 
 

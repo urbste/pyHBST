@@ -2,11 +2,10 @@
 
 function repair_wheel {
     wheel="$1"
-    if ! auditwheel show "$wheel"; then
+    if ! "$PYBIN/python" -m auditwheel show "$wheel"; then
         echo "Skipping non-platform wheel $wheel"
     else
-         #auditwheel repair "$wheel" --plat "$PLAT" -w /wheelhouse/
-         auditwheel repair "$wheel" -w /home/wheelhouse/ --no-update-tags
+         "$PYBIN/python" -m auditwheel repair "$wheel" -w /home/wheelhouse/
     fi
 }
 
@@ -16,8 +15,8 @@ cat /etc/centos-release
 
 set -e -u -x
 
-cd home
-mkdir -p /home/wheelhouse
+cd /home
+mkdir -p wheelhouse
 
 # we cannot simply use `pip` or `python`, since points to old 2.7 version
 PYBIN="/opt/python/$PYTHON_VERSION/bin"
@@ -29,13 +28,18 @@ echo "Python version number: $PYVER_NUM"
 echo "Python version: $PYTHONVER"
 
 export PATH=$PYBIN:$PATH
+export PIP_ROOT_USER_ACTION=ignore
 
-${PYBIN}/pip install auditwheel
+( cd / && "${PYBIN}/python" -m pip install --upgrade --no-cache-dir pip wheel setuptools auditwheel )
+cd /home
 
-PLAT=manylinux_2_17_x86_64
-"${PYBIN}/python" setup.py bdist_wheel --plat-name=$PLAT
+"${PYBIN}/python" setup.py bdist_wheel
 
-# Bundle external shared libraries into the wheels
+# Repair built wheels and move only manylinux wheels to wheelhouse
 for whl in /home/dist/*.whl; do
     repair_wheel "$whl"
+    rm -f "$whl"
 done
+
+# Ensure only manylinux wheels remain in wheelhouse
+find /home/wheelhouse -maxdepth 1 -type f -name "*.whl" ! -name "*manylinux*" -print -delete
